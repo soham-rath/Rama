@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Calculator • Ordered UI</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.5.1/math.min.js"></script>
+    <script src="https://unpkg.com/algebrite"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="row" style="gap: 12px">
+        <span class="title">Advanced Calculator • Ordered UI</span>
+        <span class="pill mono">Pan: drag • Zoom: wheel • Reset: R</span>
+      </div>
+      <div class="toolbar">
+        <button id="btnSavePNG" class="secondary">Export 2D PNG</button>
+        <button id="btnClearAll" class="ghost">Clear Plots</button>
+      </div>
+    </header>
+    <div id="app">
+      <nav id="tabs">
+        <button class="tab active" data-view="v-graph2d">Graph 2D</button>
+        <button class="tab" data-view="v-graph3d">Graph 3D</button>
+        <button class="tab" data-view="v-algebra">Algebra</button>
+        <button class="tab" data-view="v-calculus">Calculus</button>
+        <button class="tab" data-view="v-linear">Linear Algebra</button>
+        <button class="tab" data-view="v-stats">Statistics</button>
+        <button class="tab" data-view="v-prob">Distributions</button>
+        <button class="tab" data-view="v-ode">ODE Solver</button>
+        <button class="tab" data-view="v-memory">Memory & Vars</button>
+        <button class="tab" data-view="v-scripting">Scripting</button>
+        <button class="tab" data-view="v-settings">Settings</button>
+      </nav>
+      <main>
+        <!-- Graph 2D -->
+        <section id="v-graph2d" class="view active">
+          <div class="split">
+            <div class="panel" style="min-height: 300px">
+              <div class="toolbar">
+                <input
+                  id="fnInput"
+                  type="text"
+                  placeholder="f(x) e.g. sin(x), x^2/(x-1)"
+                />
+                <button id="btnPlot">Plot</button>
+                <button
+                  id="btnPlotDeriv"
+                  class="secondary"
+                  title="overlay derivative"
+                >
+                  Derivative
+                </button>
+                <button
+                  id="btnToggleIneq"
+                  class="secondary"
+                  title="shade y <> f(x)"
+                >
+                  Inequality
+                </button>
+                <span class="right pill"
+                  >Zoom <span id="zoomDisplay">1x</span></span
+                >
+              </div>
+              <div
+                id="canvas2dContainer"
+                class="panel"
+                style="padding: 0; border: none"
+              >
+                <canvas id="graphCanvas"></canvas>
+                <div id="plot3d"></div>
+              </div>
+              <div class="toolbar">
+                <button id="btnReset" class="secondary">Reset View</button>
+                <button id="btnIntersections" class="secondary">
+                  Intersections
+                </button>
+                <button id="btnRoots" class="secondary">Find Roots</button>
+                <button id="btnIntegral" class="secondary">Def Integral</button>
+                <button id="btnTangent" class="secondary">Tangent at x₀</button>
+              </div>
+              <small
+                >Tip: Toggle derivative overlay; double-click 3D plot to return
+                to 2D. Inequality mode expects input like
+                <span class="mono">y <= sin(x)</span>.</small
+              >
+            </div>
+            <div class="panel">
+              <strong>Functions & Analysis</strong>
+              <div class="row">
+                <input id="storeName" placeholder="label (optional)" />
+                <button id="btnStore" class="secondary">Store</button>
+                <button id="btnClearStored" class="ghost">Clear List</button>
+              </div>
+              <div id="storedList" class="list mono"></div>
+              <div class="panel">
+                <strong>Analysis</strong>
+                <div id="analysisContent" class="mono">
+                  <em>No function plotted yet.</em>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- Graph 3D -->
+        <section id="v-graph3d" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <div class="row">
+                <input
+                  id="fn3D"
+                  type="text"
+                  placeholder="z = f(x,y) e.g. sin(x)*cos(y)"
+                />
+                <button id="btn3D">Plot 3D Surface</button>
+              </div>
+              <div class="row">
+                <label
+                  >Domain x∈[<input
+                    id="x3dMin"
+                    type="number"
+                    value="-3"
+                    style="width: 80px"
+                  />
+                  ,
+                  <input
+                    id="x3dMax"
+                    type="number"
+                    value="3"
+                    style="width: 80px"
+                  />]</label
+                >
+                <label
+                  >y∈[<input
+                    id="y3dMin"
+                    type="number"
+                    value="-3"
+                    style="width: 80px"
+                  />
+                  ,
+                  <input
+                    id="y3dMax"
+                    type="number"
+                    value="3"
+                    style="width: 80px"
+                  />]</label
+                >
+                <label
+                  >Steps
+                  <input
+                    id="steps3d"
+                    type="number"
+                    value="60"
+                    min="20"
+                    max="200"
+                    style="width: 80px"
+                /></label>
+              </div>
+              <div id="plot3dStandalone" style="height: 520px"></div>
+              <small>Double-click inside 3D plot to reset camera.</small>
+            </div>
+            <div class="panel">
+              <strong>Contours & Vector Fields (2D)</strong>
+              <div class="row">
+                <input
+                  id="contourFn"
+                  placeholder="f(x,y) for contour; e.g. x^2+y^2"
+                /><button id="btnContour" class="secondary">
+                  Plot Contours
+                </button>
+              </div>
+              <div class="row">
+                <input id="vecFieldFx" placeholder="F₁(x,y)" /><input
+                  id="vecFieldFy"
+                  placeholder="F₂(x,y)"
+                /><button id="btnVectorField" class="secondary">
+                  Vector Field
+                </button>
+              </div>
+              <div id="plot2dSecondary" style="height: 420px"></div>
+            </div>
+          </div>
+        </section>
+        <!-- Algebra -->
+        <section id="v-algebra" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <strong>Expressions</strong>
+              <div class="row">
+                <input
+                  id="algExpr"
+                  placeholder="expr or equation in x (use = for equation)"
+                /><button id="btnSimplify">Simplify</button
+                ><button id="btnFactor" class="secondary">Factor</button>
+              </div>
+              <div class="row">
+                <button id="btnSolve">Solve = 0</button
+                ><button id="btnSeries" class="secondary">
+                  Taylor / Series</button
+                ><input
+                  id="seriesOrder"
+                  type="number"
+                  value="6"
+                  style="width: 80px"
+                />
+              </div>
+              <div class="panel mono" id="algOut"><em>Output</em></div>
+            </div>
+            <div class="panel">
+              <strong>Systems & Inequalities</strong>
+              <textarea
+                id="sysInput"
+                placeholder="One per line, e.g.\nx + y = 3\n2x - y = 1"
+              ></textarea>
+              <div class="row">
+                <input
+                  id="sysVars"
+                  placeholder="variables e.g. x,y (optional)"
+                />
+                <button id="btnSolveSystem">Solve System</button>
+              </div>
+              <div class="row">
+                <input
+                  id="ineqInput"
+                  placeholder="inequality in x, e.g. y <= sin(x)"
+                />
+                <button id="btnGraphIneq" class="secondary">
+                  Graph Inequality
+                </button>
+              </div>
+              <div id="sysOut" class="panel mono"><em>System output</em></div>
+            </div>
+          </div>
+        </section>
+        <!-- Calculus -->
+        <section id="v-calculus" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <strong>Single-Variable</strong>
+              <div class="row">
+                <input id="calcExpr" placeholder="f(x)" /><button id="btnDeriv">
+                  Derivative</button
+                ><button id="btnIntegral">Indef Integral</button
+                ><button id="btnLimits">Limit</button>
+              </div>
+              <div class="row">
+                <label
+                  >a<input
+                    id="limA"
+                    type="text"
+                    value="0"
+                    style="width: 80px" /></label
+                ><label
+                  >dir<select id="limDir">
+                    <option value="0">two-sided</option>
+                    <option value="-1">left</option>
+                    <option value="1">right</option>
+                  </select></label
+                >
+              </div>
+              <div class="row">
+                <label
+                  >Definite ∫ from
+                  <input
+                    id="defA"
+                    type="number"
+                    value="0"
+                    style="width: 90px" />
+                  to
+                  <input
+                    id="defB"
+                    type="number"
+                    value="1"
+                    style="width: 90px" /></label
+                ><button id="btnDefInt" class="secondary">Compute</button>
+              </div>
+              <div id="calcOut" class="panel mono"><em>Output</em></div>
+            </div>
+            <div class="panel">
+              <strong>Multivariable</strong>
+              <div class="row">
+                <input id="calcFxy" placeholder="f(x,y)" /><button
+                  id="btnGrad"
+                  class="secondary"
+                >
+                  ∇ Gradient</button
+                ><button id="btnPartial" class="secondary">∂/∂x, ∂/∂y</button>
+              </div>
+              <div class="row">
+                <label
+                  >Double integral domain: x [<input
+                    id="mx1"
+                    type="number"
+                    value="-1"
+                    style="width: 80px"
+                  />
+                  ,
+                  <input
+                    id="mx2"
+                    type="number"
+                    value="1"
+                    style="width: 80px"
+                  />], y [<input
+                    id="my1"
+                    type="number"
+                    value="-1"
+                    style="width: 80px"
+                  />
+                  ,
+                  <input
+                    id="my2"
+                    type="number"
+                    value="1"
+                    style="width: 80px"
+                  />]</label
+                ><button id="btnDoubleInt">∬ numeric</button>
+              </div>
+              <div id="calcMultiOut" class="panel mono"><em>Output</em></div>
+            </div>
+          </div>
+        </section>
+        <!-- Linear Algebra -->
+        <section id="v-linear" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <strong>Matrix Input</strong>
+              <textarea
+                id="matrixInput"
+                rows="4"
+                placeholder="[[1,2],[3,4]]"
+              ></textarea>
+              <div class="row">
+                <button id="matDet">det</button
+                ><button id="matInv" class="secondary">inverse</button
+                ><button id="matRank" class="secondary">rank</button
+                ><button id="matRREF" class="secondary">RREF</button>
+              </div>
+              <div class="row">
+                <button id="matMul" class="secondary">A×A</button
+                ><button id="matAdd" class="secondary">A+A</button
+                ><button id="matLU" class="secondary">LU</button
+                ><button id="matQR" class="secondary">QR</button>
+              </div>
+              <div class="row">
+                <button id="matEig" class="secondary">Eigen (approx)</button>
+              </div>
+              <div id="linOut" class="panel mono"><em>Output</em></div>
+            </div>
+            <div class="panel">
+              <strong>Vectors</strong>
+              <div class="row">
+                <input id="vecA" placeholder="[1,2,3]" /><input
+                  id="vecB"
+                  placeholder="[4,5,6]"
+                />
+              </div>
+              <div class="row">
+                <button id="vecDot">dot</button
+                ><button id="vecCross" class="secondary">cross</button
+                ><button id="vecNorm" class="secondary">‖a‖</button>
+              </div>
+              <div id="vecOut" class="panel mono"><em>Output</em></div>
+            </div>
+          </div>
+        </section>
+        <!-- Statistics -->
+        <section id="v-stats" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <strong>Descriptive</strong>
+              <input id="statsInput" placeholder="comma data e.g. 1,2,3,4" />
+              <div class="row">
+                <button id="btnStats">Compute</button
+                ><button id="btnHistogram" class="secondary">Histogram</button>
+              </div>
+              <div id="statsOut" class="panel mono"><em>Output</em></div>
+            </div>
+            <div class="panel">
+              <strong>Regression</strong>
+              <textarea
+                id="regX"
+                placeholder="x values (comma) or leave empty for 0..n-1"
+              ></textarea>
+              <textarea id="regY" placeholder="y values (comma)"></textarea>
+              <div class="row">
+                <label
+                  >Degree
+                  <input
+                    id="regDeg"
+                    type="number"
+                    value="1"
+                    min="1"
+                    max="6"
+                    style="width: 80px" /></label
+                ><button id="btnRegress">Fit</button>
+              </div>
+              <div id="regOut" class="panel mono"><em>Output</em></div>
+              <div id="regPlot" style="height: 300px"></div>
+            </div>
+          </div>
+        </section>
+        <!-- Distributions -->
+        <section id="v-prob" class="view">
+          <div class="panel" style="width: 100%">
+            <strong>Probability Distributions</strong>
+            <div class="row">
+              <select id="distType">
+                <option value="normal">Normal(μ,σ)</option>
+                <option value="binomial">Binomial(n,p)</option>
+                <option value="poisson">Poisson(λ)</option>
+                <option value="uniform">Uniform(a,b)</option>
+              </select>
+              <span id="distParams" class="row"></span>
+              <button id="btnDist">Compute & Plot</button>
+            </div>
+            <div id="distOut" class="panel mono"><em>Output</em></div>
+            <div id="distPlot" style="height: 360px"></div>
+          </div>
+        </section>
+        <!-- ODE -->
+        <section id="v-ode" class="view">
+          <div class="panel" style="width: 100%">
+            <strong>Numerical ODE (RK4)</strong>
+            <div class="row">
+              <input id="odeF" placeholder="dy/dx = f(x,y), e.g. x - y" /><label
+                >x₀<input
+                  id="odeX0"
+                  type="number"
+                  value="0"
+                  style="width: 90px" /></label
+              ><label
+                >y₀<input
+                  id="odeY0"
+                  type="number"
+                  value="1"
+                  style="width: 90px" /></label
+              ><label
+                >h<input
+                  id="odeH"
+                  type="number"
+                  value="0.05"
+                  step="0.01"
+                  style="width: 90px" /></label
+              ><label
+                >steps<input
+                  id="odeN"
+                  type="number"
+                  value="200"
+                  style="width: 90px" /></label
+              ><button id="btnODE">Solve & Plot</button>
+            </div>
+            <div id="odeOut" class="panel mono"><em>Output</em></div>
+            <div id="odePlot" style="height: 360px"></div>
+          </div>
+        </section>
+        <!-- Memory -->
+        <section id="v-memory" class="view">
+          <div class="grid grid-2" style="width: 100%">
+            <div class="panel">
+              <strong>Variables</strong>
+              <div class="row">
+                <input id="memName" placeholder="name e.g. a" /><input
+                  id="memValue"
+                  placeholder="value/expression"
+                /><button id="btnMemStore">Store</button>
+              </div>
+              <div class="row">
+                <input id="memQuery" placeholder="name to recall" /><button
+                  id="btnMemRecall"
+                  class="secondary"
+                >
+                  Recall</button
+                ><button id="btnMemClear" class="ghost">Clear</button>
+              </div>
+              <div id="memOut" class="panel mono"><em>Output</em></div>
+            </div>
+            <div class="panel">
+              <strong>History</strong>
+              <div
+                id="history"
+                class="list mono"
+                style="min-height: 240px"
+              ></div>
+              <div class="row">
+                <button id="btnExportHistory" class="secondary">
+                  Export History JSON</button
+                ><button id="btnClearHistory" class="ghost">
+                  Clear History
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- Scripting -->
+        <section id="v-scripting" class="view">
+          <div class="panel" style="width: 100%">
+            <strong
+              >Custom JS (math, Algebrite, scope, and plots available)</strong
+            >
+            <textarea
+              id="scriptArea"
+              class="mono"
+              rows="10"
+              placeholder="// Example:\n// return math.simplify('sin(x)^2 + cos(x)^2')"
+            ></textarea>
+            <div class="row">
+              <button id="btnRunScript">Run</button
+              ><button id="btnScriptPlot" class="secondary">
+                Plot Returned y(x)
+              </button>
+            </div>
+            <div id="scriptOut" class="panel mono"><em>Output</em></div>
+          </div>
+        </section>
+        <!-- Settings -->
+        <section id="v-settings" class="view">
+          <div class="panel" style="width: 100%">
+            <strong>Graph Settings</strong>
+            <div class="row">
+              <label
+                >Pixels/Unit
+                <input
+                  id="pixelsPerUnit"
+                  type="number"
+                  value="40"
+                  style="width: 100px" /></label
+              ><label
+                >Stroke px
+                <input
+                  id="strokePx"
+                  type="number"
+                  value="2"
+                  style="width: 100px"
+              /></label>
+            </div>
+            <div class="row"><button id="btnApplySettings">Apply</button></div>
+            <small
+              >Reset view with <b>R</b>. Double-click 3D plot to reset camera.
+            </small>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
