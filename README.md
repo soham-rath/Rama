@@ -25,14 +25,6 @@ Try it in your browser:
 
 ---
 
-## Project Structure
-
-index.html
-style.css
-script.js
-
----
-
 ## Installation
 
 1. Clone the repository:
