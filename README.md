@@ -7,7 +7,7 @@
 ## Live Demo
 
 Try it in your browser:  
-[**Open Rama Demo**](https://soham-rath.github.io/advanced-calculator/)
+[**Open Rama Demo**](https://soham-rath.github.io/Rama/)
 
 ---
 
