@@ -6,8 +6,7 @@
 
 ## Live Demo
 
-Try it in your browser (It might show as a security risk, but there is no harmfull code:  
-[**Open Rama Demo**](https://soham-rath.github.io/Rama/)
+Try it in your browser (It might show as a security risk, but there is no harmfull code: [**Open Rama Demo**](https://soham-rath.github.io/Rama/)
 
 ---
 
