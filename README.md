@@ -29,7 +29,7 @@ Try it in your browser (It might show as a security risk, but there is no harmfu
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/Advanced-Calculator.git
+git clone https://github.com/soham-rath/Rama.git
 ```
 
 2. Open index.html in your browser.
