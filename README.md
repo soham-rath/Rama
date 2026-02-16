@@ -32,9 +32,11 @@ Try it in your browser (It might show as a security risk, but there is no harmfu
 git clone https://github.com/soham-rath/Rama.git
 ```
 
-2. Open index.html in your browser.
+2. Unzip the zipped folder
 
-3. Explore the full functionality!
+3. Open index.html in your browser.
+
+4. Explore the full functionality!
 
 ## Contributing
 
